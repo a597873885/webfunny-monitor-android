@@ -16,7 +16,7 @@ dependencyResolutionManagement {
 
 // app/build.gradle.kts
 dependencies {
-    implementation("com.github.a597873885:webfunny-monitor-android:1.0.0")
+    implementation("com.github.a597873885:webfunny-monitor-android:1.0.1")
 }
 ```
 
