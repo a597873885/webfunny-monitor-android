@@ -45,7 +45,10 @@ data class WFConfig(
     val anrThresholdMs: Long = 5_000L,
 
     /** 是否在 Debug 模式下打印 SDK 日志（默认 false） */
-    val debugLog: Boolean = false
+    val debugLog: Boolean = false,
+
+    /** HTTP 请求/响应体截取上限，单位字节（默认 8KB） */
+    val httpBodyMaxBytes: Int = 8192
 ) {
     /** 完整上报地址 */
     internal val uploadUrl: String

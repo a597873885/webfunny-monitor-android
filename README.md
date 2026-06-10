@@ -69,6 +69,7 @@ val client = OkHttpClient.Builder()
 | `flushIntervalMs` | Long | `10000` | 队列定时刷新间隔（毫秒） |
 | `anrThresholdMs` | Long | `5000` | ANR 检测阈值（毫秒） |
 | `debugLog` | Boolean | `false` | 是否打印 SDK 调试日志 |
+| `httpBodyMaxBytes` | Int | `8192` | HTTP 请求/响应体截取上限（字节），默认 8KB |
 
 ## API 参考
 
@@ -119,14 +120,7 @@ try {
 
 ### WFMonitor.flush()
 
-手动刷新上报队列。通常在 App 退后台时调用，避免数据丢失。
-
-```kotlin
-override fun onStop() {
-    super.onStop()
-    WFMonitor.flush()
-}
-```
+手动刷新上报队列。SDK 已在 App 退后台时自动 flush，一般不需要手动调用。
 
 ## 上报数据类型
 

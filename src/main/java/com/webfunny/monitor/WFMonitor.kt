@@ -1,7 +1,9 @@
 package com.webfunny.monitor
 
+import android.app.Activity
 import android.app.Application
 import android.content.Context
+import android.os.Bundle
 import android.util.Log
 import com.webfunny.monitor.collector.*
 import com.webfunny.monitor.core.WFConfig
@@ -75,6 +77,20 @@ object WFMonitor {
         if (config.enableFps || config.enableMemory) {
             MemoryFpsCollector.start(appContext, config)
         }
+
+        // App 退后台自动 flush，避免队列积压数据丢失
+        application.registerActivityLifecycleCallbacks(object : Application.ActivityLifecycleCallbacks {
+            private var startedCount = 0
+            override fun onActivityStarted(a: Activity) { startedCount++ }
+            override fun onActivityStopped(a: Activity) {
+                if (--startedCount == 0) WFUploader.flushNow()
+            }
+            override fun onActivityCreated(a: Activity, b: Bundle?) {}
+            override fun onActivityResumed(a: Activity) {}
+            override fun onActivityPaused(a: Activity) {}
+            override fun onActivitySaveInstanceState(a: Activity, b: Bundle) {}
+            override fun onActivityDestroyed(a: Activity) {}
+        })
 
         if (config.debugLog) {
             Log.d("WFMonitor", "══════════════════════════════════")
