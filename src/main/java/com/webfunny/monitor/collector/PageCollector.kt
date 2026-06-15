@@ -39,6 +39,15 @@ object PageCollector {
     private val fragmentStack = mutableMapOf<String, PageRecord>()
     private val registeredActivities = mutableSetOf<String>()
 
+    /** 不应作为页面上报的系统 / 框架 Fragment */
+    private val excludedFragmentNames = setOf(
+        "NavHostFragment",
+        "DialogFragment"
+    )
+
+    /** 不应作为页面上报的系统 Activity */
+    private val excludedActivityNames = setOf<String>()
+
     private var config: WFConfig? = null
     private var firstPVReported = false
 
@@ -52,11 +61,15 @@ object PageCollector {
     private fun createActivityCallbacks() = object : ActivityLifecycleCallbacks {
 
         override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
+            // Activity PV 始终记录，但上报时若已注册 Fragment 追踪则跳过
             recordPage(activityStack, activity.javaClass.simpleName, true)
             registerFragmentTrackingSafe(activity)
         }
 
         override fun onActivityResumed(activity: Activity) {
+            // 若 Activity 已注册 Fragment 追踪（即内部页面由 Fragment 代表），
+            // 则只上报 Fragment 级 PV，跳过 Activity 级 PV 避免重复
+            if (registeredActivities.contains(activity.javaClass.simpleName)) return
             reportPage(activityStack, activity.javaClass.simpleName, activity)
         }
 
@@ -94,15 +107,20 @@ object PageCollector {
                         fm: FragmentManager, f: Fragment, v: View,
                         savedInstanceState: Bundle?
                     ) {
-                        recordPage(fragmentStack, f.javaClass.simpleName, true)
+                        val name = f.javaClass.simpleName
+                        if (name in excludedFragmentNames) return
+                        recordPage(fragmentStack, name, true)
                     }
 
                     override fun onFragmentResumed(fm: FragmentManager, f: Fragment) {
-                        reportPage(fragmentStack, f.javaClass.simpleName, f.requireContext())
+                        val name = f.javaClass.simpleName
+                        if (name in excludedFragmentNames) return
+                        reportPage(fragmentStack, name, f.requireContext())
                     }
 
                     override fun onFragmentDestroyed(fm: FragmentManager, f: Fragment) {
-                        fragmentStack.remove(f.javaClass.simpleName)
+                        val name = f.javaClass.simpleName
+                        fragmentStack.remove(name)
                     }
                 },
                 true

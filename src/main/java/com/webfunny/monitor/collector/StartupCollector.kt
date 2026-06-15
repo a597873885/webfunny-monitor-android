@@ -86,16 +86,18 @@ object StartupCollector {
                         )
                         WFUploader.enqueue(log)
 
-                        // 冷启动也产生一条 CUSTOMER_PV
+                        // 冷启动也产生一条 CUSTOMER_PV，pagePath 用 app_start 标识
+                        // ★ 必须先更新 currentPage，因为 PvLog 构造时会将其写入 simpleUrl
+                        WFSession.currentPage = "app_start"
                         val pvLog = PvLog(
                             config   = config,
                             context  = activity,
-                            pagePath = activity.javaClass.simpleName,
+                            pagePath = "app_start",
                             loadType = "initial",
                             referrer = ""
                         )
-                        WFSession.currentPage = activity.javaClass.simpleName
                         WFUploader.enqueue(pvLog)
+                        if (config.debugLog) android.util.Log.d("WFMonitor", "[PV] app_start loadType=initial → 已入队")
                     } catch (e: Exception) { /* 静默 */ }
 
                 } else if (pendingHotStart && warmActivityName == activity.javaClass.simpleName) {
@@ -117,6 +119,7 @@ object StartupCollector {
                         WFUploader.enqueue(log)
 
                         // 温启动也产生一条 CUSTOMER_PV
+                        WFSession.currentPage = activity.javaClass.simpleName
                         val pvLog = PvLog(
                             config   = config,
                             context  = activity,
@@ -124,7 +127,6 @@ object StartupCollector {
                             loadType = "navigation",
                             referrer = ""
                         )
-                        WFSession.currentPage = activity.javaClass.simpleName
                         WFUploader.enqueue(pvLog)
                     } catch (e: Exception) { /* 静默 */ }
 
@@ -145,6 +147,7 @@ object StartupCollector {
                         WFUploader.enqueue(log)
 
                         // 热启动也产生一条 CUSTOMER_PV
+                        WFSession.currentPage = activity.javaClass.simpleName
                         val pvLog = PvLog(
                             config   = config,
                             context  = activity,
@@ -152,7 +155,6 @@ object StartupCollector {
                             loadType = "navigation",
                             referrer = ""
                         )
-                        WFSession.currentPage = activity.javaClass.simpleName
                         WFUploader.enqueue(pvLog)
                     } catch (e: Exception) { /* 静默 */ }
                 }
